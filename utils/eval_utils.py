@@ -80,14 +80,14 @@ def eval_ate(frames, kf_ids, save_dir, iterations, final=False, monocular=False)
     for kf_id in kf_ids:
         kf = frames[kf_id]
         pose_est = np.linalg.inv(gen_pose_matrix(kf.R, kf.T))
-        pose_gt = np.linalg.inv(gen_pose_matrix(kf.R_gt, kf.T_gt))
+        # pose_gt = np.linalg.inv(gen_pose_matrix(kf.R_gt, kf.T_gt))
 
         trj_id.append(frames[kf_id].uid)
         trj_est.append(pose_est.tolist())
-        trj_gt.append(pose_gt.tolist())
+        # trj_gt.append(pose_gt.tolist())
 
         trj_est_np.append(pose_est)
-        trj_gt_np.append(pose_gt)
+        # trj_gt_np.append(pose_gt)
 
     trj_data["trj_id"] = trj_id
     trj_data["trj_est"] = trj_est
@@ -102,13 +102,13 @@ def eval_ate(frames, kf_ids, save_dir, iterations, final=False, monocular=False)
     ) as f:
         json.dump(trj_data, f, indent=4)
 
-    ate = evaluate_evo(
-        poses_gt=trj_gt_np,
-        poses_est=trj_est_np,
-        plot_dir=plot_dir,
-        label=label_evo,
-        monocular=monocular,
-    )
+    # ate = evaluate_evo(
+    #     poses_gt=trj_gt_np,
+    #     poses_est=trj_est_np,
+    #     plot_dir=plot_dir,
+    #     label=label_evo,
+    #     monocular=monocular,
+    # )
     wandb.log({"frame_idx": latest_frame_idx, "ate": ate})
     return ate
 

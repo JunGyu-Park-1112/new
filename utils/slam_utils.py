@@ -135,6 +135,7 @@ def get_median_depth(depth, opacity=None, mask=None, return_std=False):
     if opacity is not None:
         valid = torch.logical_and(valid, opacity > 0.95)
     if mask is not None:
+        # mask = mask.permute(0,2,1)
         valid = torch.logical_and(valid, mask)
     valid_depth = depth[valid]
     if return_std:

@@ -100,6 +100,7 @@ class FrontEnd(mp.Process):
                         invalid_depth_mask, std * 0.5, std * 0.2
                     )
 
+                # valid_rgb = valid_rgb.permute(0,2,1)
                 initial_depth[~valid_rgb] = 0  # Ignore the invalid rgb pixels
             return initial_depth.cpu().numpy()[0]
         # use the observed depth
@@ -118,7 +119,7 @@ class FrontEnd(mp.Process):
             self.backend_queue.get()
 
         # Initialise the frame at the ground truth pose
-        viewpoint.update_RT(viewpoint.R_gt, viewpoint.T_gt)
+        # viewpoint.update_RT(viewpoint.R_gt, viewpoint.T_gt)
 
         self.kf_indices = []
         depth_map = self.add_new_keyframe(cur_frame_idx, init=True)
@@ -344,20 +345,20 @@ class FrontEnd(mp.Process):
 
             if self.frontend_queue.empty():
                 tic.record()
-                if cur_frame_idx >= len(self.dataset):
-                    if self.save_results:
-                        eval_ate(
-                            self.cameras,
-                            self.kf_indices,
-                            self.save_dir,
-                            0,
-                            final=True,
-                            monocular=self.monocular,
-                        )
-                        save_gaussians(
-                            self.gaussians, self.save_dir, "final", final=True
-                        )
-                    break
+                # if cur_frame_idx >= len(self.dataset):
+                    # if self.save_results:
+                    #     eval_ate(
+                    #         self.cameras,
+                    #         self.kf_indices,
+                    #         self.save_dir,
+                    #         0,
+                    #         final=True,
+                    #         monocular=self.monocular,
+                    #     )
+                    #     save_gaussians(
+                    #         self.gaussians, self.save_dir, "final", final=True
+                    #     )
+                    # break
 
                 if self.requested_init:
                     time.sleep(0.01)
@@ -458,20 +459,21 @@ class FrontEnd(mp.Process):
                     self.cleanup(cur_frame_idx)
                 cur_frame_idx += 1
 
-                if (
-                    self.save_results
-                    and self.save_trj
-                    and create_kf
-                    and len(self.kf_indices) % self.save_trj_kf_intv == 0
-                ):
-                    Log("Evaluating ATE at frame: ", cur_frame_idx)
-                    eval_ate(
-                        self.cameras,
-                        self.kf_indices,
-                        self.save_dir,
-                        cur_frame_idx,
-                        monocular=self.monocular,
-                    )
+                # if (
+                #     self.save_results
+                #     and self.save_trj
+                #     and create_kf
+                #     and len(self.kf_indices) % self.save_trj_kf_intv == 0
+                # ):
+                    # ATE 출력 X
+                    # Log("Evaluating ATE at frame: ", cur_frame_idx)
+                    # eval_ate(
+                    #     self.cameras,
+                    #     self.kf_indices,
+                    #     self.save_dir,
+                    #     cur_frame_idx,
+                    #     monocular=self.monocular,
+                    # )
                 toc.record()
                 torch.cuda.synchronize()
                 if create_kf:

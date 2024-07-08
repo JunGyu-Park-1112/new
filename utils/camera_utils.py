@@ -10,8 +10,8 @@ class Camera(nn.Module):
         self,
         uid,
         color,
-        depth,
-        gt_T,
+        # depth,
+        # gt_T,
         projection_matrix,
         fx,
         fy,
@@ -30,11 +30,11 @@ class Camera(nn.Module):
         T = torch.eye(4, device=device)
         self.R = T[:3, :3]
         self.T = T[:3, 3]
-        self.R_gt = gt_T[:3, :3]
-        self.T_gt = gt_T[:3, 3]
+        # self.R_gt = gt_T[:3, :3]
+        # self.T_gt = gt_T[:3, 3]
 
         self.original_image = color
-        self.depth = depth
+        self.depth = None
         self.grad_mask = None
 
         self.fx = fx
@@ -64,12 +64,12 @@ class Camera(nn.Module):
 
     @staticmethod
     def init_from_dataset(dataset, idx, projection_matrix):
-        gt_color, gt_depth, gt_pose = dataset[idx]
+        gt_color,_ ,_ = dataset[idx]
         return Camera(
             idx,
             gt_color,
-            gt_depth,
-            gt_pose,
+            # gt_depth,
+            # gt_pose,
             projection_matrix,
             dataset.fx,
             dataset.fy,
@@ -88,7 +88,7 @@ class Camera(nn.Module):
             znear=0.01, zfar=100.0, fx=fx, fy=fy, cx=cx, cy=cy, W=W, H=H
         ).transpose(0, 1)
         return Camera(
-            uid, None, None, T, projection_matrix, fx, fy, cx, cy, FoVx, FoVy, H, W
+            uid, None, projection_matrix, fx, fy, cx, cy, FoVx, FoVy, H, W
         )
 
     @property

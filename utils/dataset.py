@@ -20,9 +20,9 @@ class ReplicaParser:
     def __init__(self, input_folder):
         self.input_folder = input_folder
         self.color_paths = sorted(glob.glob(f"{self.input_folder}/results/frame*.jpg"))
-        self.depth_paths = sorted(glob.glob(f"{self.input_folder}/results/depth*.png"))
+        # self.depth_paths = sorted(glob.glob(f"{self.input_folder}/results/depth*.png"))
         self.n_img = len(self.color_paths)
-        self.load_poses(f"{self.input_folder}/traj.txt")
+        # self.load_poses(f"{self.input_folder}/traj.txt")
 
     def load_poses(self, path):
         self.poses = []
@@ -256,7 +256,7 @@ class MonocularDataset(BaseDataset):
 
     def __getitem__(self, idx):
         color_path = self.color_paths[idx]
-        pose = self.poses[idx]
+        # pose = self.poses[idx]
 
         image = np.array(Image.open(color_path))
         depth = None
@@ -264,9 +264,9 @@ class MonocularDataset(BaseDataset):
         if self.disorted:
             image = cv2.remap(image, self.map1x, self.map1y, cv2.INTER_LINEAR)
 
-        if self.has_depth:
-            depth_path = self.depth_paths[idx]
-            depth = np.array(Image.open(depth_path)) / self.depth_scale
+        # if self.has_depth:
+        #     depth_path = self.depth_paths[idx]
+        #     depth = np.array(Image.open(depth_path)) / self.depth_scale
 
         image = (
             torch.from_numpy(image / 255.0)
@@ -274,7 +274,8 @@ class MonocularDataset(BaseDataset):
             .permute(2, 0, 1)
             .to(device=self.device, dtype=self.dtype)
         )
-        pose = torch.from_numpy(pose).to(device=self.device)
+        # pose = torch.from_numpy(pose).to(device=self.device)
+        pose = None
         return image, depth, pose
 
 
@@ -411,8 +412,8 @@ class ReplicaDataset(MonocularDataset):
         parser = ReplicaParser(dataset_path)
         self.num_imgs = parser.n_img
         self.color_paths = parser.color_paths
-        self.depth_paths = parser.depth_paths
-        self.poses = parser.poses
+        # self.depth_paths = parser.depth_paths
+        # self.poses = parser.poses
 
 
 class EurocDataset(StereoDataset):

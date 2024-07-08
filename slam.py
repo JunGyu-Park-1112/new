@@ -67,7 +67,9 @@ class SLAM:
         q_vis2main = mp.Queue() if self.use_gui else FakeQueue()
 
         self.config["Results"]["save_dir"] = save_dir
-        self.config["Training"]["monocular"] = self.monocular
+
+        # self.config["Training"]["monocular"] = self.monocular
+        self.config["Training"]["monocular"] = True
 
         self.frontend = FrontEnd(self.config)
         self.backend = BackEnd(self.config)
@@ -102,8 +104,8 @@ class SLAM:
 
         backend_process = mp.Process(target=self.backend.run)
         if self.use_gui:
-            gui_process = mp.Process(target=slam_gui.run, args=(self.params_gui,))
-            gui_process.start()
+            # gui_process = mp.Process(target=slam_gui.run, args=(self.params_gui,))
+            # gui_process.start()
             time.sleep(5)
 
         backend_process.start()
@@ -121,14 +123,14 @@ class SLAM:
         if self.eval_rendering:
             self.gaussians = self.frontend.gaussians
             kf_indices = self.frontend.kf_indices
-            ATE = eval_ate(
-                self.frontend.cameras,
-                self.frontend.kf_indices,
-                self.save_dir,
-                0,
-                final=True,
-                monocular=self.monocular,
-            )
+            # ATE = eval_ate(
+            #     self.frontend.cameras,
+            #     self.frontend.kf_indices,
+            #     self.save_dir,
+            #     0,
+            #     final=True,
+            #     monocular=self.monocular,
+            # )
 
             rendering_result = eval_rendering(
                 self.frontend.cameras,
@@ -147,7 +149,6 @@ class SLAM:
                 rendering_result["mean_psnr"],
                 rendering_result["mean_ssim"],
                 rendering_result["mean_lpips"],
-                ATE,
                 FPS,
             )
 
@@ -180,7 +181,6 @@ class SLAM:
                 rendering_result["mean_psnr"],
                 rendering_result["mean_ssim"],
                 rendering_result["mean_lpips"],
-                ATE,
                 FPS,
             )
             wandb.log({"Metrics": metrics_table})
@@ -200,11 +200,21 @@ class SLAM:
 
 if __name__ == "__main__":
     # Set up command line argument parser
+
+    replica_config = "configs/mono/replica/replica_office3.yaml"
+    tum_config = "configs/mono/tum/fr3_office.yaml"
+
     parser = ArgumentParser(description="Training script parameters")
     parser.add_argument("--config", type=str)
     parser.add_argument("--eval", action="store_true")
 
     args = parser.parse_args(sys.argv[1:])
+
+    # 디버그 실행시, 인자 설정
+    if __debug__:
+        args.config = replica_config
+        args.eval = True
+
 
     mp.set_start_method("spawn")
 
@@ -220,19 +230,30 @@ if __name__ == "__main__":
         Log("\tsave_results=True")
         config["Results"]["save_results"] = True
         Log("\tuse_gui=False")
-        config["Results"]["use_gui"] = False
+        config["Results"]["use_gui"] = True
         Log("\teval_rendering=True")
         config["Results"]["eval_rendering"] = True
         Log("\tuse_wandb=True")
-        config["Results"]["use_wandb"] = True
+        config["Results"]["use_wandb"] = False
 
     if config["Results"]["save_results"]:
         mkdir_p(config["Results"]["save_dir"])
         current_datetime = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         path = config["Dataset"]["dataset_path"].split("/")
-        save_dir = os.path.join(
-            config["Results"]["save_dir"], path[-3] + "_" + path[-2], current_datetime
-        )
+
+        # Demo Data 실행
+        if args.config == tum_config:
+            save_dir = os.path.join(
+                config["Results"]["save_dir"], path[-3] + "_" + path[-2], current_datetime
+            )
+        # replica Data 실행
+        elif args.config == replica_config:
+            save_dir = os.path.join(
+            config["Results"]["save_dir"], path[-2] + "_" + path[-1], current_datetime
+            )
+
+        
+
         tmp = args.config
         tmp = tmp.split(".")[0]
         config["Results"]["save_dir"] = save_dir
